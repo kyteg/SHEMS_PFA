@@ -14,15 +14,16 @@ welcomemsg="""
  --------------------------
 
 data from National Household Travel Survey.
+code by Kyte Gurner
  """
 
 print(welcomemsg)
 
 print("importing data...")
 data = pd.read_csv(r'../CSV/trippub.csv')
+#sort with TRPHHVEH here!
 #define evdata here!!
 print("...done!\n")
-
 
 ###OPTIONS IN COMMAND LINE###
 def help():
@@ -73,8 +74,34 @@ def plot_vehicle_usage_time_likelihood(d):
 
 def plot_vehicle_not_in_house(d):
     #shows when the vehicle is not in the house.
-    pass
+    #use WHYTO/WHYFROM! whyto from house, whyto to house. filter data with these constraints.
+    cars = []
+    cars_going_home = []
+    for i in range(len(d.WHYFROM)):
+        if i%100000 == 0:
+            print("{}%".format(int(100*i/len(d.WHYFROM))))
+        if (d.WHYFROM[i] == 1 or d.WHYFROM[i] == 2):
+            #leaving. Setting leave time.
+            cars.append([d.VEHID[i], d.STRTTIME[i], 9999])
 
+        #precompute relavant car entries to make computation more efficient.
+        if d.WHYTO[i]==1 or d.WHYTO[i]==2:
+            cars_going_home.append([d.VEHID[i], d.WHYTO[i], d.STRTTIME[i], d.ENDTIME[i]])
+        if len(cars_going_home) >= 5000:  #for testing
+            break
+
+    print(len(cars_going_home))
+    for i in range(len(cars)):
+        vehid = cars[i][0]
+        strttime = cars[i][1]
+        if i%1000 == 0:
+            print("{}%".format(int(100*i/len(cars))))
+        for j in range(len(cars_going_home)):
+            #returning. Setting return time.
+            if cars_going_home[j][0] == vehid and cars_going_home[j][2] != strttime:
+                cars[i][2] = cars_going_home[j][3]
+    print(cars[1:100])
+    #plot here!
 ###FUNCTION TO GET REQUESTS!###
 def getrequest():
     r = input(">>").lower()
@@ -90,7 +117,7 @@ def getrequest():
         plot_vehicle_usage_time_likelihood(evdata)
     elif r == "vehicle not in house":
         plot_vehicle_not_in_house(data)
-    elif r == "elec vehicle not in house":
+    elif r == "ev not in house":
         plot_vehicle_not_in_house(evdata)
 
     else:
