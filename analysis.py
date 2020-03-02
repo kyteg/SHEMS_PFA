@@ -56,6 +56,7 @@ def plot_vehicle_usage_time_likelihood(d):
     for i in range(len(cumsum)):
         cumsum[i] = cumsum[i]/tot
 
+    #plot
     times = []
     xticks = []
     for i in range(1439):
@@ -72,36 +73,63 @@ def plot_vehicle_usage_time_likelihood(d):
 
     plt.show()
 
-def plot_vehicle_not_in_house(d):
-    #shows when the vehicle is not in the house.
-    #use WHYTO/WHYFROM! whyto from house, whyto to house. filter data with these constraints.
-    cars = []
+def plot_house_leave_return_times(d, bins = False, ev = False):
+    #plots the leave and return times from house of vehivles.
     cars_going_home = []
+    cars_coming_home = []
+
+    if bins:
+        for i in range(24):
+            cars_going_home.append(0)
+            cars_coming_home.append(0)
+    else:
+        for i in range(1440):
+            cars_going_home.append(0)
+            cars_coming_home.append(0)
+
     for i in range(len(d.WHYFROM)):
         if i%100000 == 0:
             print("{}%".format(int(100*i/len(d.WHYFROM))))
         if (d.WHYFROM[i] == 1 or d.WHYFROM[i] == 2):
             #leaving. Setting leave time.
-            cars.append([d.VEHID[i], d.STRTTIME[i], 9999])
+            leave_time = d.STRTTIME[i]
+            leave_index = int((leave_time - leave_time%100)*0.6 + leave_time%100)
+            if bins:
+                leave_index = int((leave_index - leave_index%60)/60)
+            cars_going_home[leave_index] += 1
+        if (d.WHYTO[i] == 1 or d.WHYTO[i] == 2):
+            #returning.Setting return time.
+            return_time = d.ENDTIME[i]
+            return_index = int((return_time - return_time%100)*0.6 + return_time%100)
+            if bins:
+                return_index = int((return_index - return_index%60)/60)
+            cars_coming_home[return_index] += 1
 
-        #precompute relavant car entries to make computation more efficient.
-        if d.WHYTO[i]==1 or d.WHYTO[i]==2:
-            cars_going_home.append([d.VEHID[i], d.WHYTO[i], d.STRTTIME[i], d.ENDTIME[i]])
-        if len(cars_going_home) >= 5000:  #for testing
-            break
+    #plot
+    times = []
+    xticks = []
+    if bins:
+        for i in range(24):
+            times.append(i)
+        for i in range (12):
+            xticks.append(i*2)
+    else:
+        for i in range(1440):
+            time = ((i-i%60)/60)*100+i%60
+            times.append(time)
+        for i in range(12):
+            xticks.append(i*200)
+    plt.plot(times, cars_going_home)
+    plt.plot(times, cars_coming_home)
+    plt.ylabel('frequency')
+    plt.xlabel('time')
+    plt.xticks(xticks)
+    plt.title('frequency of vehicle leaving or returning house at a given time')
+    print("Done!")
 
-    print(len(cars_going_home))
-    for i in range(len(cars)):
-        vehid = cars[i][0]
-        strttime = cars[i][1]
-        if i%1000 == 0:
-            print("{}%".format(int(100*i/len(cars))))
-        for j in range(len(cars_going_home)):
-            #returning. Setting return time.
-            if cars_going_home[j][0] == vehid and cars_going_home[j][2] != strttime:
-                cars[i][2] = cars_going_home[j][3]
-    print(cars[1:100])
-    #plot here!
+    plt.show()
+
+
 ###FUNCTION TO GET REQUESTS!###
 def getrequest():
     r = input(">>").lower()
@@ -109,16 +137,18 @@ def getrequest():
         sys.exit()
     elif r == "help":
         help()
-    elif r == "start to end time plot":
-        plot_start_end_time()
+    elif r == "start and end time plots":
+        plot_trip_start_end_times()
     elif r == "usage time likelihood":
         plot_vehicle_usage_time_likelihood(data)
     elif r == "ev usage time likelihood":
         plot_vehicle_usage_time_likelihood(evdata)
-    elif r == "vehicle not in house":
-        plot_vehicle_not_in_house(data)
+    elif r == "vehicle leave return times":
+        plot_house_leave_return_times(data)
+    elif r == "vehicle leave return times in bins":
+        plot_house_leave_return_times(data, bins = True)
     elif r == "ev not in house":
-        plot_vehicle_not_in_house(evdata)
+        plot_house_leave_return_times(evdata, ev = True)
 
     else:
         print("invalid command")
