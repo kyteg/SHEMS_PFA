@@ -13,4 +13,4 @@ usage time likelihood               - plots the likelihood of a vehicle on the r
 
 vehicle leave return times          - plots times whereby vehicle leaves or returns home. Precise to the minute (bins may be more useful as ppl are more likely to report a clean leave/return time, eg 1pm rather than 1:02 pm)
 
-vehicle leave return times in bins  -plots times whereby vehicle leaves or returns home. Precise to the hour. 
+vehicle leave return times in hours - plots times whereby vehicle leaves or returns home. To the hour. 
