@@ -76,16 +76,18 @@ def plot_vehicle_usage_time_likelihood(d):
 def plot_house_leave_return_times(d, bins = False, ev = False):
     #plots the leave and return times from house of vehivles.
     cars_going_home = []
-    cars_coming_home = []
+    Cars_comming_home = []
+    numof_cars_going_home = 0
+    numof_cars_comming_home = 0
 
     if bins:
-        for i in range(24):
+        for i in range(25):
             cars_going_home.append(0)
-            cars_coming_home.append(0)
+            Cars_comming_home.append(0)
     else:
         for i in range(1440):
             cars_going_home.append(0)
-            cars_coming_home.append(0)
+            Cars_comming_home.append(0)
 
     for i in range(len(d.WHYFROM)):
         if i%100000 == 0:
@@ -95,21 +97,33 @@ def plot_house_leave_return_times(d, bins = False, ev = False):
             leave_time = d.STRTTIME[i]
             leave_index = int((leave_time - leave_time%100)*0.6 + leave_time%100)
             if bins:
-                leave_index = int((leave_index - leave_index%60)/60)
+                if leave_index%60 > 30:
+                    #round up
+                    leave_index = int((leave_index + 60 - leave_index%60)/60)
+                else:
+                    #round down
+                    leave_index = int((leave_index - leave_index%60)/60)
             cars_going_home[leave_index] += 1
+            numof_cars_going_home += 1
         if (d.WHYTO[i] == 1 or d.WHYTO[i] == 2):
             #returning.Setting return time.
             return_time = d.ENDTIME[i]
             return_index = int((return_time - return_time%100)*0.6 + return_time%100)
             if bins:
-                return_index = int((return_index - return_index%60)/60)
-            cars_coming_home[return_index] += 1
+                if return_index%60 > 30:
+                    #round up
+                    return_index = int((return_index + 60 - return_index%60)/60)
+                else:
+                    #round down
+                    return_index = int((return_index - return_index%60)/60)
+            Cars_comming_home[return_index] += 1
+            numof_cars_comming_home += 1
 
     #plot
     times = []
     xticks = []
     if bins:
-        for i in range(24):
+        for i in range(25):
             times.append(i)
         for i in range (12):
             xticks.append(i*2)
@@ -119,9 +133,13 @@ def plot_house_leave_return_times(d, bins = False, ev = False):
             times.append(time)
         for i in range(12):
             xticks.append(i*200)
+    for i in range(len(cars_going_home)):
+        cars_going_home[i] = cars_going_home[i]/numof_cars_going_home
+    for i in range(len(Cars_comming_home)):
+        Cars_comming_home[i] = Cars_comming_home[i]/numof_cars_comming_home
     plt.plot(times, cars_going_home)
-    plt.plot(times, cars_coming_home)
-    plt.ylabel('frequency')
+    plt.plot(times, Cars_comming_home)
+    plt.ylabel('likelihood')
     plt.xlabel('time')
     plt.xticks(xticks)
     plt.title('frequency of vehicle leaving or returning house at a given time')
@@ -137,7 +155,7 @@ def getrequest():
         sys.exit()
     elif r == "help":
         help()
-    elif r == "start and end time plots":
+    elif r == "start/end time plots":
         plot_trip_start_end_times()
     elif r == "usage time likelihood":
         plot_vehicle_usage_time_likelihood(data)
@@ -145,7 +163,7 @@ def getrequest():
         plot_vehicle_usage_time_likelihood(evdata)
     elif r == "vehicle leave return times":
         plot_house_leave_return_times(data)
-    elif r == "vehicle leave return times in bins":
+    elif r == "vehicle leave return times in hours":
         plot_house_leave_return_times(data, bins = True)
     elif r == "ev not in house":
         plot_house_leave_return_times(evdata, ev = True)
