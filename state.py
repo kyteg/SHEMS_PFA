@@ -6,7 +6,7 @@ import random
 
 class state(object):
     def __init__(self, policy, ev_leave_probabilities, ev_return_probabilities, time = 0.0,
-    house_power_draw = 0, ev_at_home = True, ev_capacity = 50, battery_capacity = 8,
+    house_demand = 0, ev_at_home = True, ev_capacity = 50, battery_capacity = 8,
     variable_load_power_req = ?, solar_generation_capacity = 8, solar_power_generated = 0):
 
         #time is from 0-23.5 in intervals of 0.5 (correcponding to 30 miniutes)
@@ -24,7 +24,7 @@ class state(object):
 
         #variables that are quasi-randomly generated (with time taken into account).
         self.solar_generated = solar_generated
-        self.house_power_draw = house_power_draw
+        self.house_demand = house_demand
 
         #constants
         self.EV_CAPACITY = ev_capacity
@@ -64,6 +64,6 @@ class state(object):
 
     def grid_pull(self):
         #this is what we want to minimise in the optimum policy function (ie the neural net)
-        used = self.charge_ev + self.charge_battery + self.flexi_load + self.house_power_draw
+        used = self.charge_ev + self.charge_battery + self.flexi_load + self.house_demand
         pull = used - self.solar_generated
         return pull
