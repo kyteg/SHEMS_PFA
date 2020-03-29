@@ -6,8 +6,10 @@ import random
 
 class state(object):
     def __init__(self, policy, ev_leave_probabilities, ev_return_probabilities, time = 0.0,
-    house_demand = 0, ev_at_home = True, ev_capacity = 50, battery_capacity = 8,
-    variable_load_power_req = ?, solar_generation_capacity = 8, solar_power_generated = 0):
+    house_demand = 2, ev_at_home = True, ev_capacity = 75, battery_capacity = 30,
+    variable_load_power_req = 10, solar_generation_capacity = 6, solar_generated = 0):
+
+        #units are in kWh (except solar_generation_capacity, in kW)
 
         #time is from 0-23.5 in intervals of 0.5 (correcponding to 30 miniutes)
         #(this will be useful in update(), where we must look at the time of day to update info like vahicle_at_home)
@@ -60,10 +62,39 @@ class state(object):
                 else:
                     ev_at_home = False
 
-        def update_
+        def update_ev_charge():
+            self.ev_charge += policy.charge_ev
+
+        def update_bat_charge():
+            self.bat_charge += policy.charge_bat
+
+        def update_flexi_charge():
+            self.flexi_charge += policy.flexi_load
+
+        def update_solar_generated():
+            #need to change this with ev profiles.
+            if self.time > 7 and self.time < 18:
+                self.solar_generated = self.SOLAR_GENERATION_CAPACITY/2
+            else:
+                self.solar_generated = 0
+
+        def update_house_demand():
+            #need to change this with demand profiles.
+            self.house_demand = 2
+
+        update_time()
+        update_ev_at_home()
+        update_ev_charge()
+        update_bat_charge()
+        update_flexi_charge()
+        update_solar_generated()
+        update_house_demand()
 
     def grid_pull(self):
         #this is what we want to minimise in the optimum policy function (ie the neural net)
         used = self.charge_ev + self.charge_battery + self.flexi_load + self.house_demand
         pull = used - self.solar_generated
         return pull
+
+    def policy(self, policy):
+        self.policy = policy
