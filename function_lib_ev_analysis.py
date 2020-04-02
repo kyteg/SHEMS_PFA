@@ -191,9 +191,9 @@ def plot_house_leave_return_times_catagories(d):
     #separate d into catagories!
     catagories = [pd.DataFrame(columns = ['LIF_CYC', 'WHYFROM', 'WHYTO', 'STRTTIME', 'ENDTIME']) for i in range(11)]   #ignore list index 0 to avoid confusion.
     counters = [0 for i in range(11)]
-    for i in range(len(d)):
-        if i%(len(d)/100) == 0:
-            print("progress = {}%".format(100*i/len(d)))
+    for i in range(int(len(d))):
+        if i%1000 == 0:
+            print("progress = {}%".format(100*i/(len(d))))
         new_entry = [d.LIF_CYC[i], d.WHYFROM[i], d.WHYTO[i], d.STRTTIME[i], d.ENDTIME[i]]
         if d.LIF_CYC[i] == 1:
             catagories[1].loc[counters[1]] = new_entry

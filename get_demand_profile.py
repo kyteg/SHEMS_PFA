@@ -89,3 +89,7 @@ plt.ylabel("Energy usage (kWh)")
 plt.show()
 
 #TODO - export the cum_demand
+
+#also, modify the general demand in such a way so as to incoporate information from the EV at home data.
+#each LYF-CYC might have different implications.
+#add the EV charging profile to the damand profile. 
