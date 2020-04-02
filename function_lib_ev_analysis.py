@@ -114,41 +114,38 @@ def plot_house_leave_return_times(d, bins = False, ev = False, subtitle = ''):
 
     #plot
     times = []
-    xticks = []
     if bins:
         for i in range(25):
             times.append(i)
-        for i in range (12):
-            xticks.append(i*2)
     else:
         for i in range(1440):
             time = ((i-i%60)/60)*100+i%60
             times.append(time)
-        for i in range(12):
-            xticks.append(i*200)
     for i in range(len(cars_leaving_home)):
         cars_leaving_home[i] = cars_leaving_home[i]/numof_cars_leaving_home
     for i in range(len(cars_coming_home)):
         cars_coming_home[i] = cars_coming_home[i]/numof_cars_coming_home
+    xticks = [0, 6, 12, 18, 24]
+    xlabels = ["12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "12:00 am"]
     plt.plot(times, cars_leaving_home)
     plt.plot(times, cars_coming_home)
     plt.ylabel('Density')
-    plt.xlabel('time')
-    plt.xticks(xticks)
-    plt.suptitle('Density of vehicle leaving or returning house at a given time')
+    plt.xlabel('Time of day')
+    plt.xticks(xticks, labels = xlabels)
+    plt.suptitle('EV leaving/returning')
     plt.title(subtitle, fontsize = 10)
     print("Done!")
 
     plt.show()
 
     #export
-    if subtitle != '':
-        file_location = '../leave_return_times_data/'+subtitle.strip()+'_leaving.txt'
-        with open(file_location, 'w') as f:
-            f.write(str(cars_leaving_home))
-        file_location = '../leave_return_times_data/'+subtitle.strip()+'_coming.txt'
-        with open(file_location,'w') as f:
-            f.write(str(cars_coming_home))
+    # if subtitle != '':
+    #     file_location = '../leave_return_times_data/'+subtitle.strip()+'_leaving.txt'
+    #     with open(file_location, 'w') as f:
+    #         f.write(str(cars_leaving_home))
+    #     file_location = '../leave_return_times_data/'+subtitle.strip()+'_coming.txt'
+    #     with open(file_location,'w') as f:
+    #         f.write(str(cars_coming_home))
 
 def plot_house_leave_return_times_kde(d):
     #This function does the same thing as plot_house_leave_return_times(). Just experimenting with gaussian_kde() to be able to tweak parameters when doing kde.
@@ -195,8 +192,8 @@ def plot_house_leave_return_times_catagories(d):
     catagories = [pd.DataFrame(columns = ['LIF_CYC', 'WHYFROM', 'WHYTO', 'STRTTIME', 'ENDTIME']) for i in range(11)]   #ignore list index 0 to avoid confusion.
     counters = [0 for i in range(11)]
     for i in range(len(d)):
-        if not i%(int(len(d)/100)):
-            print(i/len(d))
+        if i%(len(d)/100) == 0:
+            print("progress = {}%".format(100*i/len(d)))
         new_entry = [d.LIF_CYC[i], d.WHYFROM[i], d.WHYTO[i], d.STRTTIME[i], d.ENDTIME[i]]
         if d.LIF_CYC[i] == 1:
             catagories[1].loc[counters[1]] = new_entry
