@@ -31,8 +31,11 @@ def print_progress(count, total):
     return
 data = []
 with open("../trial_cust_half_hour/CD_INTERVAL_READING.dat", 'r') as f:
-    for i in range(100000):                                             #CHANGE NUMBER OF DATAPOINTS HERE!
-        data.append(f.readline())
+    for i in range(1000000):      #100000                                       #CHANGE NUMBER OF DATAPOINTS HERE!
+        line = f.readline()
+        if line == "":
+            break
+        data.append(line)
 
 time = []
 demand = []
@@ -88,8 +91,9 @@ plt.xlabel("Time of measurement")
 plt.ylabel("Energy usage (kWh)")
 plt.show()
 
-#TODO - export the cum_demand
+with open("demand_profiles/demand_without_ev.txt", 'w') as f:
+    f.write(str(cum_demand))
 
 #also, modify the general demand in such a way so as to incoporate information from the EV at home data.
 #each LYF-CYC might have different implications.
-#add the EV charging profile to the damand profile. 
+#add the EV charging profile to the damand profile.
