@@ -31,7 +31,7 @@ def print_progress(count, total):
     return
 data = []
 with open("../trial_cust_half_hour/CD_INTERVAL_READING.dat", 'r') as f:
-    for i in range(1000000):      #100000                                       #CHANGE NUMBER OF DATAPOINTS HERE!
+    for i in range(100000):      #100000                                       #CHANGE NUMBER OF DATAPOINTS HERE!
         line = f.readline()
         if line == "":
             break

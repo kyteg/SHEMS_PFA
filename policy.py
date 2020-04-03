@@ -2,8 +2,8 @@
 defines the policy class
 """
 
-class policy(object):
-    def __init__(charge_ev = 0, charge_bat = 0, flexi_load = 0):
+class Policy(object):
+    def __init__(self, charge_ev = 0, charge_bat = 0, flexi_load = 0):
         self.charge_ev = charge_ev
         self.charge_bat = charge_bat
         self.flexi_load = flexi_load

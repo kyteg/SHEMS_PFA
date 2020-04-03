@@ -4,10 +4,11 @@ Defines the state class
 
 import random
 
-class state(object):
-    def __init__(self, policy, ev_leave_probabilities, ev_return_probabilities, time = 0.0,
-    house_demand = 2, ev_at_home = True, ev_capacity = 75, battery_capacity = 30,
-    variable_load_power_req = 10, solar_generation_capacity = 6, solar_generated = 0):
+class State(object):
+    def __init__(self, policy, ev_profile, time = 0.0,
+    house_demand = 2, ev_at_home = True, ev_charge = 0, bat_charge = 0, flexi_charge = 0, ev_capacity = 75,
+    battery_capacity = 30, variable_load_power_req = 10, solar_generation_capacity = 6,
+    solar_generated = 0):
 
         #units are in kWh (except solar_generation_capacity, in kW)
 
@@ -33,8 +34,7 @@ class state(object):
         self.BATTERY_CAPACITY = battery_capacity
         self.VARIABLE_LOAD_POWER_REQ = variable_load_power_req
         self.SOLAR_GENERATION_CAPACITY = solar_generation_capacity
-        self.EV_LEAVE_PROBABILITIES = ev_leave_probabilities
-        self.EV_RETURN_PROBABILITIES = ev_return_probabilities
+        self.EV_PROFILE = ev_profile
 
     def update(self, policy):
         #stocastically update the state to the next state given the current state and input policy.
@@ -47,20 +47,11 @@ class state(object):
                 self.time += 0.5
 
         def update_ev_at_home():
-            if self.ev_at_home:
-                ev_leave_prob = self.EV_LEAVE_PROBABILITIES[self.time * 2]
-                if random.randint(10000) <= ev_leave_prob*10000:
-                    #ev is at home
-                    ev_at_home = True
-                else:
-                    ev_at_home = False
+            ev_home_prob = self.EV_PROFILE[int(self.time * 2)]
+            if random.randint(0, 10000) <= ev_home_prob*10000:
+                self.ev_at_home = True
             else:
-                ev_return_prob = self.EV_RETURN_PROBABILITIES[self.time*2]
-                if random.randint(10000) <= ev_return_prob*10000:
-                    #ev returned home
-                    ev_at_home = True
-                else:
-                    ev_at_home = False
+                self.ev_at_home = False
 
         def update_ev_charge():
             self.ev_charge += policy.charge_ev
@@ -98,3 +89,8 @@ class state(object):
 
     def policy(self, policy):
         self.policy = policy
+
+    def print_state(self):
+        print("""time = {}, ev_at_home = {}, ev_charge = {}, bat_charge = {}, flexi_charge = {},
+        solar_generated = {}, house_demand = {}""".format(self.time, self.ev_at_home, self.ev_charge,
+        self.bat_charge, self.flexi_charge, self.solar_generated, self.house_demand))

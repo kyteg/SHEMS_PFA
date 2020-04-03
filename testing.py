@@ -2,14 +2,11 @@ import state
 import policy
 import os
 
-data = []
-for file in os.listdir("leave_return_times_data/"):
-    path = "leave_return_times_data/"+file
-    with open(path, 'r') as f:
-        data.append(f.read())
+evprofile = [1 for i in range(48)]
 
-print(data[1])
+p = policy.Policy()
+s = state.State(policy, evprofile)
 
-
-p = policy()
-s = state(policy, )
+for i in range(80):
+    s.update(p)
+    s.print_state()
