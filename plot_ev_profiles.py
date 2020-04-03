@@ -9,13 +9,15 @@ def plot_ev_profiles(filepath):
     plt.plot(data)
     xticks = [0, 6, 12, 18, 24]
     xlabels = ["12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "12:00 am"]
-    plt.title("EV profile")
+    plt.title("EV profiles")
     plt.ylabel('Density')
     plt.xlabel('Time of day')
     plt.xticks(xticks, labels = xlabels)
-    plt.suptitle('EV profile')
-    plt.title(filepath.split("/")[-1].split(".")[0], fontsize = 10)
-    plt.show()
+    #plt.suptitle('EV profile')
+    #plt.title(filepath.split("/")[-1].split(".")[0], fontsize = 10)
+
 
 for i in range(1, 11):
     plot_ev_profiles("ev_profiles/LIF_CYC"+str(i)+".txt")
+
+plt.show()
