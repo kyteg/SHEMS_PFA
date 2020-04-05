@@ -2,7 +2,7 @@ import state
 import policy
 import os
 
-evprofile = [1 for i in range(48)]
+with open("ev_profiles/")
 
 p = policy.Policy()
 s = state.State(policy, evprofile)
