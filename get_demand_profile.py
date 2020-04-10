@@ -41,9 +41,9 @@ time = []
 demand = []
 customer_id = data[0].split(',')[0]
 prev_time = float(data[0].split(',')[3].split()[1].split(':')[0]) + (1/60)*float(data[0].split(',')[3].split()[1].split(':')[1])
-
+cum_count = [0 for i in range(48)]
 count = 0
-for point in data:
+for point in data: #calculate the demand profile
 
     print_progress(count, len(data))
 
@@ -56,16 +56,19 @@ for point in data:
             time_to_append = float(time_d[0]) + (1/60)*float(time_d[1])
             if time_to_append == prev_time + 0.5:
                 time.append(time_to_append)
-                demand.append(float(point[4])/2)
-                cum_demand[int(time_to_append*2)] += float(point[4])/2
+                demand.append(float(point[4]))
+                cum_demand[int(time_to_append*2)] += float(point[4])
+                cum_count[int(time_to_append*2)] += 1
             else:
-                plt.plot(time, demand)  #divide demand by two to convert kW to kWh
+                plt.plot(time, demand)
                 time, demand = new_plot(time, demand, point)
-                cum_demand[int(time[0]*2)] += demand[0]/2
+                #cum_demand[int(time[0]*2)] += demand[0]/2
+                #cum_count[int(time_to_append*2)] += 1
         else:
             plt.plot(time, demand)
             time, demand = new_plot(time, demand, point)
-            cum_demand[0] += demand[0]/2
+            #cum_demand[0] += demand[0]/2
+            #cum_count[0] += 1
         customer_id = point[0]
         prev_time = time_to_append
     count+=1
@@ -77,9 +80,11 @@ plt.yticks(yticks)
 plt.xticks(xticks, labels = xlabels)
 plt.title("Weekday demand profiles")
 plt.xlabel("Time of measurement")
-plt.ylabel("Energy usage (kWh)")
+plt.ylabel("Energy usage (kW)")
 plt.show()
 
+cum_demand[0] = cum_demand[-1]
+cum_count[0] = cum_count[-1]
 plt.plot(cum_demand)
 yticks = [50, 100, 150, 200]
 xticks = [0, 12, 24, 36, 48]
@@ -88,11 +93,27 @@ plt.yticks(yticks)
 plt.xticks(xticks, labels = xlabels)
 plt.title("Weekday demand profiles - Aggregated")
 plt.xlabel("Time of measurement")
-plt.ylabel("Energy usage (kWh)")
+plt.ylabel("Energy usage (kW)")
+plt.show()
+
+ave_demand = [0 for i in range(48)]
+for i in range(len(cum_demand)):
+    ave_demand[i] = cum_demand[i]/cum_count[i]
+print(ave_demand)
+
+plt.plot(ave_demand)
+yticks = [0, 0.25, 0.5, 0.75, 1]
+xticks = [0, 12, 24, 36, 48]
+xlabels = ["12:00 am", "6:00 am", "12:00 pm", "6:00 pm", "12:00 am"]
+plt.yticks(yticks)
+plt.xticks(xticks, labels = xlabels)
+plt.title("Weekday demand profiles - Average")
+plt.xlabel("Time of measurement")
+plt.ylabel("Energy usage (kW)")
 plt.show()
 
 with open("demand_profiles/demand_without_ev.txt", 'w') as f:
-    f.write(str(cum_demand))
+    f.write(str(ave_demand))
 
 #also, modify the general demand in such a way so as to incoporate information from the EV at home data.
 #each LYF-CYC might have different implications.

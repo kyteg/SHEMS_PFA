@@ -3,10 +3,12 @@ Defines the state class
 """
 
 import random
+from demand_generator import demand_generator
+import math
 
 class State(object):
     def __init__(self, policy, ev_profile, time = 0.0,
-    house_demand = 2, ev_at_home = True, ev_charge = 0, bat_charge = 0, flexi_charge = 0, ev_capacity = 75,
+    house_demand = 0, ev_at_home = True, ev_charge = 0, bat_charge = 0, flexi_charge = 0, ev_capacity = 75,
     battery_capacity = 30, variable_load_power_req = 10, solar_generation_capacity = 6,
     solar_generated = 0):
 
@@ -29,6 +31,9 @@ class State(object):
         self.solar_generated = solar_generated
         self.house_demand = house_demand
 
+        #This is what we want as close to 0 as possible!
+        self.grid_pull = 0
+
         #constants
         self.EV_CAPACITY = ev_capacity
         self.BATTERY_CAPACITY = battery_capacity
@@ -36,18 +41,29 @@ class State(object):
         self.SOLAR_GENERATION_CAPACITY = solar_generation_capacity
         self.EV_PROFILE = ev_profile
 
+
+        with open("demand_profiles/demand_without_ev.txt") as f:
+            demand_profile = f.readline()
+        demand_profile = demand_profile.split('[')[1].split(']')[0].split(', ')
+        for i in range(len(demand_profile)):
+            demand_profile[i] = float(demand_profile[i])
+
+        with open("demand_profiles/variance.txt") as f:
+            variance = f.readline()
+        variance = variance.split('[')[1].split(']')[0].split(', ')
+        sd = [0 for i in range(len(variance))]
+        for i in range(len(variance)):
+            sd[i] = math.sqrt(float(variance[i]))
+
+        self.demand_profile = demand_profile
+        self.sd = sd
+
     def update(self, policy):
         #stocastically update the state to the next state given the current state and input policy.
         #The state is updated every 30 simulated minutes.
 
-        def update_time():
-            if self.time == 23.5:
-                self.time = 0.0
-            else:
-                self.time += 0.5
-
         def update_ev_at_home():
-            ev_home_prob = self.EV_PROFILE[int(self.time * 2)]
+            ev_home_prob = self.EV_PROFILE[int(self.time)]
             if random.randint(0, 10000) <= ev_home_prob*10000:
                 self.ev_at_home = True
             else:
@@ -63,7 +79,7 @@ class State(object):
             self.flexi_charge += policy.flexi_load
 
         def update_solar_generated():
-            #need to change this with ev profiles.
+            #need to change this with solar profiles.
             if self.time > 7 and self.time < 18:
                 self.solar_generated = self.SOLAR_GENERATION_CAPACITY/2
             else:
@@ -71,26 +87,33 @@ class State(object):
 
         def update_house_demand():
             #need to change this with demand profiles.
-            self.house_demand = 2
+            self.house_demand = demand_generator(self.time, self.demand_profile, self.sd)
 
-        update_time()
+        def grid_pull():
+            #this is what we want to minimise in the optimum policy function (ie the neural net)
+            used = policy.charge_ev + policy.charge_bat + policy.flexi_load + self.house_demand
+            self.grid_pull = used - self.solar_generated
+
+        def update_time():
+            if self.time == 23.5:
+                self.time = 0.0
+            else:
+                self.time += 0.5
+
+
         update_ev_at_home()
         update_ev_charge()
         update_bat_charge()
         update_flexi_charge()
         update_solar_generated()
         update_house_demand()
-
-    def grid_pull(self):
-        #this is what we want to minimise in the optimum policy function (ie the neural net)
-        used = self.charge_ev + self.charge_battery + self.flexi_load + self.house_demand
-        pull = used - self.solar_generated
-        return pull
+        grid_pull()
+        update_time()
 
     def policy(self, policy):
         self.policy = policy
 
     def print_state(self):
         print("""time = {}, ev_at_home = {}, ev_charge = {}, bat_charge = {}, flexi_charge = {},
-        solar_generated = {}, house_demand = {}""".format(self.time, self.ev_at_home, self.ev_charge,
-        self.bat_charge, self.flexi_charge, self.solar_generated, self.house_demand))
+        solar_generated = {}, house_demand = {}, grid_pull = {}""".format(self.time, self.ev_at_home, self.ev_charge,
+        self.bat_charge, self.flexi_charge, self.solar_generated, self.house_demand, self.grid_pull))
