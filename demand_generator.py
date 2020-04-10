@@ -11,7 +11,7 @@ def demand_generator(time, ave_demand, sd):
     demand = ave_demand[int(time*2)] + noise
     if demand < 0:
         demand = 0
-    return demand
+    return 2*demand
 
 if __name__ == "__main__":
     with open("demand_profiles/demand_without_ev.txt") as f:
