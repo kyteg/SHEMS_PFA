@@ -5,11 +5,13 @@ Defines the state class
 import random
 from demand_generator import demand_generator
 import math
+from solar_generator import solar_generator
+
 
 class State(object):
     def __init__(self, policy, ev_profile, time = 0.0,
     house_demand = 0, ev_at_home = True, ev_charge = 0, bat_charge = 0, flexi_charge = 0, ev_capacity = 75,
-    battery_capacity = 30, variable_load_power_req = 10, solar_generation_capacity = 6,
+    battery_capacity = 30, variable_load_power_req = 10, solar_generation_capacity = 3,
     solar_generated = 0):
 
         #units are in kWh (except solar_generation_capacity, in kW)
@@ -79,15 +81,10 @@ class State(object):
             self.flexi_charge += policy.flexi_load
 
         def update_solar_generated():
-            #need to change this with solar profiles.
-            if self.time > 7 and self.time < 18:
-                self.solar_generated = self.SOLAR_GENERATION_CAPACITY/2
-            else:
-                self.solar_generated = 0
+            self.solar_generated = solar_generator(self.time)
 
         def update_house_demand():
-            #need to change this with demand profiles.
-            self.house_demand = demand_generator(self.time, self.demand_profile, self.sd)
+            self.house_demand = round(demand_generator(self.time, self.demand_profile, self.sd), 2)
 
         def grid_pull():
             #this is what we want to minimise in the optimum policy function (ie the neural net)
@@ -99,7 +96,6 @@ class State(object):
                 self.time = 0.0
             else:
                 self.time += 0.5
-
 
         update_ev_at_home()
         update_ev_charge()
