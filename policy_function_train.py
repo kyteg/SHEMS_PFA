@@ -6,24 +6,12 @@ create a state vector that changes as a function of time in a realistic manner.
 train a neural network using tensorflow using reinforcement leanrning.
 test the neural network.
 """
-
-reward = sell_to_grid + pull_from_grid + (1-ev_charge_ratio) + (1-bat_charge_ratio) + ev_not_home*ev_charging*10000000 + time==0*flexi_not_full*10000
-
 import state
 import policy
 import os
 import tensorflow as tf
 from tensorflow import keras
-
-
-model = keras.Sequential([
-            keras.layers.Dense(5, activation = 'relu'),
-            keras.layers.Dense(5, activation = tf.nn.elu),
-            keras.layers.Dense(3, activation = tf.nn.elu)
-    ])
-
-model.compile(optimizer = 'adam', )
-
+import numpy as np
 
 with open("ev_profiles/LIF_CYC1.txt") as f:
     evprofile = f.readline()
@@ -34,21 +22,61 @@ for i in range(len(evprofile)):
 p = policy.Policy()
 s = state.State(policy, evprofile)
 
+class ActivityRegularizationLayer(keras.layers.Layer):
 
-# Define Losses
-pg_loss = tf.reduce_mean((D_R - value) * tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=Y))
-value_loss = value_scale * tf.reduce_mean(tf.square(D_R - value))
-entropy_loss = -entropy_scale * tf.reduce_sum(aprob * tf.exp(aprob))
-loss = pg_loss + value_loss - entropy_loss
+  def call(self, inputs):
+    self.add_loss(s.reward())
+    return inputs
+
+model = keras.Sequential([
+            keras.Input(shape = (5,)),
+            ActivityRegularizationLayer(),
+            keras.layers.Dense(5, activation = tf.nn.elu),
+            keras.layers.Dense(3, activation = tf.nn.elu),
+    ])
+
 
 # Create Optimizer
-optimizer = tf.train.AdamOptimizer(alpha)
-grads = tf.gradients(loss, tf.trainable_variables())
-grads, _ = tf.clip_by_global_norm(grads, gradient_clip) # gradient clipping
-grads_and_vars = list(zip(grads, tf.trainable_variables()))
-train_op = optimizer.apply_gradients(grads_and_vars)
 
-# Initialize Session
-sess = tf.Session()
-init = tf.global_variables_initializer()
-sess.run(init)
+#model.compile(optimizer='adam',
+#              loss=loss, metrics=['accuracy'])
+
+inputs = []
+for i in range(1000):
+    inputs.append(np.array(s.return_state()))
+    s.update(p)
+
+inputs = np.array(inputs)
+
+epochs = 3
+for epoch in range(epochs):
+  print('Start of epoch %d' % (epoch,))
+
+  # Iterate over the batches of the dataset.
+  for i in range(1000):
+
+    # Open a GradientTape to record the operations run
+    # during the forward pass, which enables autodifferentiation.
+    with tf.GradientTape() as tape:
+
+      # Run the forward pass of the layer.
+      # The operations that the layer applies
+      # to its inputs are going to be recorded
+      # on the GradientTape.
+      logits = model(inputs, training=True)  # Logits for this minibatch
+
+      # Compute the loss value for this minibatch.
+      loss_value = model()
+
+    # Use the gradient tape to automatically retrieve
+    # the gradients of the trainable variables with respect to the loss.
+    grads = tape.gradient(loss_value, model.trainable_weights)
+
+    # Run one step of gradient descent by updating
+    # the value of the variables to minimize the loss.
+    optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+    # Log every 200 batches.
+    if step % 200 == 0:
+        print('Training loss (for one batch) at step %s: %s' % (step, float(loss_value)))
+        print('Seen so far: %s samples' % ((step + 1) * 64))

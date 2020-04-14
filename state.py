@@ -136,12 +136,12 @@ class State(object):
         if self.time == 0 and self.flexi_charge != self.VARIABLE_LOAD_POWER_REQ:
             reward -= 10
 
-        return reward if reward > 0 else 0
+        return reward*10 if reward > 0 else 0
 
 
 
     def return_state(self):
-        return (self.time, self.ev_at_home, self.ev_charge, self.bat_charge, self.flexi_charge)
+        return [self.time, self.ev_at_home, self.ev_charge, self.bat_charge, self.flexi_charge]
 
     def print_state(self):
         print("""time = {}, ev_at_home = {}, ev_charge = {}, bat_charge = {}, flexi_charge = {},
