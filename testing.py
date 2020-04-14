@@ -13,4 +13,4 @@ s = state.State(policy, evprofile)
 
 for i in range(80):
     s.update(p)
-    s.print_state()
+    print(s.reward())

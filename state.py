@@ -72,13 +72,26 @@ class State(object):
                 self.ev_at_home = False
 
         def update_ev_charge():
-            self.ev_charge += policy.charge_ev
+            if self.ev_at_home:
+                self.ev_charge += policy.charge_ev
+                if self.ev_charge > self.EV_CAPACITY:
+                    self.ev_charge = self.EV_CAPACITY
+                if self.ev_charge < 0:
+                    self.ev_charge = 0
+            else:
+                policy.charge_ev = 0
 
         def update_bat_charge():
             self.bat_charge += policy.charge_bat
+            if self.bat_charge > self.BATTERY_CAPACITY:
+                self.bat_charge = self.BATTERY_CAPACITY
+            if self.bat_charge < 0:
+                self.bat_charge = 0
 
         def update_flexi_charge():
             self.flexi_charge += policy.flexi_load
+            if self.flexi_charge > self.VARIABLE_LOAD_POWER_REQ:
+                self.flexi_charge = self.VARIABLE_LOAD_POWER_REQ
 
         def update_solar_generated():
             self.solar_generated = solar_generator(self.time)
@@ -106,8 +119,29 @@ class State(object):
         grid_pull()
         update_time()
 
-    def policy(self, policy):
+    def update_policy(self, policy):
         self.policy = policy
+
+    def reward(self):
+        reward = 0
+
+        #grid pull/sell
+        if self.grid_pull > 0:
+            reward -= self.grid_pull
+        else:
+            reward += 0.5*self.grid_pull
+
+        reward += (self.ev_charge/self.EV_CAPACITY)
+        reward += self.bat_charge/self.BATTERY_CAPACITY
+        if self.time == 0 and self.flexi_charge != self.VARIABLE_LOAD_POWER_REQ:
+            reward -= 10
+
+        return reward if reward > 0 else 0
+
+
+
+    def return_state(self):
+        return (self.time, self.ev_at_home, self.ev_charge, self.bat_charge, self.flexi_charge)
 
     def print_state(self):
         print("""time = {}, ev_at_home = {}, ev_charge = {}, bat_charge = {}, flexi_charge = {},

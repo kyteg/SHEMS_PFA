@@ -3,7 +3,7 @@ defines the policy class
 """
 
 class Policy(object):
-    def __init__(self, charge_ev = 0, charge_bat = 0, flexi_load = 0):
+    def __init__(self, charge_ev = 1, charge_bat = 1, flexi_load = 1):
         self.charge_ev = charge_ev
         self.charge_bat = charge_bat
         self.flexi_load = flexi_load
