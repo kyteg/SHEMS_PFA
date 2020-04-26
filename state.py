@@ -61,7 +61,7 @@ class State(object):
         self.sd = sd
 
     def update(self, policy):
-        #stocastically update the state to the next state given the current state and input policy.
+        #update the state to the next state given the current state and input policy.
         #The state is updated every 30 simulated minutes.
 
         def update_ev_at_home():
@@ -72,36 +72,61 @@ class State(object):
                 self.ev_at_home = False
 
         def update_ev_charge():
+            ev_use = 0
             if self.ev_at_home:
-                self.ev_charge += policy.charge_ev
-                if self.ev_charge > self.EV_CAPACITY:
-                    self.ev_charge = self.EV_CAPACITY
+                ev_use = -5
+                if policy.charge_ev:
+                    self.ev_charge += 5
+                    if self.ev_charge > self.EV_CAPACITY:
+                        ev_use -= self.EV_CAPACITY - self.ev_charge
+                        self.ev_charge = self.EV_CAPACITY
+                else:
+                    ev_use = 5
+                    self.ev_charge -= 5
+                    if self.ev_charge < 0:
+                        ev_use = self.ev_charge + 5
+                        self.ev_charge = 0
+            else:
+                self.ev_charge -= 5
                 if self.ev_charge < 0:
                     self.ev_charge = 0
-            else:
-                policy.charge_ev = 0
+            return ev_use
 
         def update_bat_charge():
-            self.bat_charge += policy.charge_bat
-            if self.bat_charge > self.BATTERY_CAPACITY:
-                self.bat_charge = self.BATTERY_CAPACITY
-            if self.bat_charge < 0:
-                self.bat_charge = 0
+            bat_use = 0
+            if policy.charge_bat:
+                bat_use = -5
+                self.bat_charge += 5
+                if self.bat_charge > self.BATTERY_CAPACITY:
+                    bat_use = self.bat_charge-self.BATTERY_CAPACITY
+                    self.bat_charge = self.BATTERY_CAPACITY
+            else:
+                bat_use = 5
+                self.bat_charge -= 5
+                if self.bat_charge < 0:
+                    bat_use = self.bat_charge - 5
+                    self.bat_charge = 0
+            return bat_use
 
         def update_flexi_charge():
-            self.flexi_charge += policy.flexi_load
-            if self.flexi_charge > self.VARIABLE_LOAD_POWER_REQ:
-                self.flexi_charge = self.VARIABLE_LOAD_POWER_REQ
+            flexi_use = 0
+            if policy.flexi_load:
+                flexi_use = -5
+                self.flexi_charge += 5
+                if self.flexi_charge > self.VARIABLE_LOAD_POWER_REQ:
+                    flexi_use = self.flexi_charge - self.VARIABLE_LOAD_POWER_REQ
+                    self.flexi_charge = self.VARIABLE_LOAD_POWER_REQ
+            return flexi_use
 
         def update_solar_generated():
-            self.solar_generated = solar_generator(self.time)
+            self.solar_generated = 5*solar_generator(self.time)
 
         def update_house_demand():
             self.house_demand = round(demand_generator(self.time, self.demand_profile, self.sd), 2)
 
-        def grid_pull():
+        def grid_pull(ev_use, bat_use, flexi_use):
             #this is what we want to minimise in the optimum policy function (ie the neural net)
-            used = policy.charge_ev + policy.charge_bat + policy.flexi_load + self.house_demand
+            used = self.house_demand - (ev_use + bat_use + flexi_use)
             self.grid_pull = used - self.solar_generated
 
         def update_time():
@@ -111,37 +136,35 @@ class State(object):
                 self.time += 0.5
 
         update_ev_at_home()
-        update_ev_charge()
-        update_bat_charge()
-        update_flexi_charge()
+        ev_use = update_ev_charge()
+        bat_use = update_bat_charge()
+        flexi_use = update_flexi_charge()
         update_solar_generated()
         update_house_demand()
-        grid_pull()
+        grid_pull(ev_use, bat_use, flexi_use)
         update_time()
 
     def update_policy(self, policy):
         self.policy = policy
 
     def reward(self):
-        reward = 0
+        reward = 1
 
         #grid pull/sell
         if self.grid_pull > 0:
             reward -= self.grid_pull
         else:
-            reward += 0.5*self.grid_pull
+            reward += self.grid_pull
 
-        reward += (self.ev_charge/self.EV_CAPACITY)
-        reward += self.bat_charge/self.BATTERY_CAPACITY
-        if self.time == 0 and self.flexi_charge != self.VARIABLE_LOAD_POWER_REQ:
-            reward -= 10
+        # if self.time == 0 and self.flexi_charge != self.VARIABLE_LOAD_POWER_REQ:
+        #     reward -= 10
 
-        return reward*10 if reward > 0 else 0
+        return reward 
 
 
 
     def return_state(self):
-        return [self.time, self.ev_at_home, self.ev_charge, self.bat_charge, self.flexi_charge]
+        return (self.time, self.ev_at_home, self.ev_charge, self.bat_charge, self.flexi_charge)
 
     def print_state(self):
         print("""time = {}, ev_at_home = {}, ev_charge = {}, bat_charge = {}, flexi_charge = {},
