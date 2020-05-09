@@ -7,7 +7,7 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense
 
 discount = 0.97
-train_iter = 1000
+train_iter = 10000
 
 #define our model
 input = Input(shape=(5,))
@@ -36,7 +36,7 @@ for i in range(train_iter):
     target = get_target(s, discount)[0]
     print(target)
     print(policy)
-    model.train_on_batch(np.array([s.return_state()]), np.array([target]))
+    model.fit(np.array([s.return_state()]), np.array([target]))
 
 for i in range(100):
     pred = model.predict(np.array([s.return_state()])).tolist()
