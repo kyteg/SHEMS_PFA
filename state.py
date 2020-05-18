@@ -159,7 +159,7 @@ class State(object):
         # if self.time == 0 and self.flexi_charge != self.VARIABLE_LOAD_POWER_REQ:
         #     reward -= 10
 
-        return reward 
+        return -reward 
 
 
 
