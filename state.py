@@ -116,6 +116,8 @@ class State(object):
                 if self.flexi_charge > self.VARIABLE_LOAD_POWER_REQ:
                     flexi_use = self.flexi_charge - self.VARIABLE_LOAD_POWER_REQ
                     self.flexi_charge = self.VARIABLE_LOAD_POWER_REQ
+            if self.time == 0:
+                self.flexi_charge = 0
             return flexi_use
 
         def update_solar_generated():
@@ -156,10 +158,9 @@ class State(object):
         else:
             reward += self.grid_pull
 
-        # if self.time == 0 and self.flexi_charge != self.VARIABLE_LOAD_POWER_REQ:
-        #     reward -= 10
+        reward += (0.25)*self.ev_charge + (0.18)*self.bat_charge + (0.4)*self.flexi_charge
 
-        return -reward 
+        return reward
 
 
 

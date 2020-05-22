@@ -10,6 +10,7 @@ def get_target(s_real, discount, max_reward = [999999, 0], depth = 0):
         return 1, s_real.reward()
 
     p = policy.Policy()
+    rank = []
 
     for i in range(8):
         s = state.State(p, ev_profile = s_real.EV_PROFILE, time = s_real.time,
@@ -20,11 +21,14 @@ def get_target(s_real, discount, max_reward = [999999, 0], depth = 0):
         p.manual_update(i)
         s.update(p)
         reward = s.reward() + get_target(s, discount, max_reward, depth+1)[1] * discount
+        rank.append(reward)
         if reward < max_reward[0]:
             max_reward = [reward, i]
 
     result = [0 for i in range(8)]
-    result[max_reward[1]] = 1
+    rank_sorted = sorted(rank)
+    for i in range(len(result)):
+        result[i] = 0.5**(rank_sorted.index(rank[i])+1)
     return result, max_reward[0]
 
 if __name__ == "__main__":
