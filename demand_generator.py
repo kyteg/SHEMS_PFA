@@ -6,6 +6,7 @@ def demand_generator(time, ave_demand, sd):
     """
     The demand generator generates a random demand profile taking into account the average demand profile
     and the variace of the demand at each point in time.
+    This is modified because sd is too large. The sd for all points is set to be 0.03.
     """
     noise = np.random.normal(0, 0.03)
     demand = ave_demand[int(time*2)] + noise
@@ -33,4 +34,8 @@ if __name__ == "__main__":
         for i in range(len(time)):
             demand.append(demand_generator(time[i], demand_profile, sd))
         plt.plot(demand)
+        plt.xlabel('time')
+        plt.ylabel('demand')
+        plt.title('Random demand profile - #{}'.format(i))
+
         plt.show()
