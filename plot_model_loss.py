@@ -9,7 +9,7 @@ for i in range(len(loss)):
     loss[i] = float(loss[i])
 
 plt.plot(loss, '.')
-plt.title("RNN loss against number of training iterations")
+plt.title("RNN loss against number of training iterations with suboptimal policy information")
 plt.ylabel("Loss")
 plt.xlabel("Iteration")
 plt.yticks([0.0, 2.5, 5.0, 7.5, 10.0, 12.5, 15.0, 17.5])
@@ -25,7 +25,7 @@ for i in range(0, len(loss), 100):
     aves.append(ave)
 
 plt.plot(aves, '.', label='')
-plt.title("Conventional neural network loss against number of training iterations - bins of 100")
+plt.title("Conventional neural network loss against number of training iterations with suboptimal policy information - bins of 100")
 plt.ylabel("Loss")
 plt.xlabel("Iteration/100")
 x = [i for i in range(50)]
