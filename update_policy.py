@@ -2,13 +2,13 @@ import state
 import policy
 import random
 import numpy as np
-from get_loss_func_dilute import get_target
+from get_loss_func import get_target
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Dense, LSTM
 from tensorflow import expand_dims
 
 discount = 0.97
-train_iter = 5000
+train_iter = 50000
 loss_list = []
 
 #define our model
@@ -49,8 +49,8 @@ for i in range(train_iter):
     print(p.selection())
 
 #now save model
-model.save('10000_0.97_5_32LSTM_32_8_dilute')
-with open('10000_0.97_5_32LSTM_32_8_dilute.txt', 'w') as f:
+model.save('50000_0.97_5_32LSTM_32_8')
+with open('50000_0.97_5_32LSTM_32_8.txt', 'w') as f:
     f.write(str(loss_list))
 
 #test it
