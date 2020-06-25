@@ -19,10 +19,5 @@ class Policy(object):
         if selection[2] == 1:
             self.flexi_load = True
 
-
-    def update(self, state):
-        #This is where we use the trained neural net to update the policy given a new state
-        return
-
     def selection(self):
         return (self.charge_ev, self.charge_bat, self.flexi_load)

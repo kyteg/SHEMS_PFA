@@ -23,13 +23,13 @@ def help():
     print(helpmsg)
 
 def plot_trip_start_end_times():
-    #Plots the start and end times of all travel data
+    """Plots the start and end times of all travel data"""
     data.STRTTIME.plot.hist(bins=100)
     data.ENDTIME.plot.hist(bins=100)
     plt.show()
 
 def plot_vehicle_usage_time_likelihood(d):
-    #Plots the likelihood of vehicle (any fuel type) being used at a given time.
+    """Plots the likelihood of vehicle (any fuel type) being used at a given time."""
     print("computing...")
     cumsum = []
     tot = 0
@@ -67,7 +67,7 @@ def plot_vehicle_usage_time_likelihood(d):
     plt.show()
 
 def plot_house_leave_return_times(d, bins = False, ev = False, subtitle = ''):
-    #plots the leave and return times from house of vehivles.
+    """plots the leave and return times from house of vehivles."""
     cars_leaving_home = []
     cars_coming_home = []
     numof_cars_leaving_home = 0
@@ -139,16 +139,16 @@ def plot_house_leave_return_times(d, bins = False, ev = False, subtitle = ''):
     plt.show()
 
     #export
-    # if subtitle != '':
-    #     file_location = '../leave_return_times_data/'+subtitle.strip()+'_leaving.txt'
-    #     with open(file_location, 'w') as f:
-    #         f.write(str(cars_leaving_home))
-    #     file_location = '../leave_return_times_data/'+subtitle.strip()+'_coming.txt'
-    #     with open(file_location,'w') as f:
-    #         f.write(str(cars_coming_home))
+    if subtitle != '':
+        file_location = '../leave_return_times_data/'+subtitle.strip()+'_leaving.txt'
+        with open(file_location, 'w') as f:
+            f.write(str(cars_leaving_home))
+        file_location = '../leave_return_times_data/'+subtitle.strip()+'_coming.txt'
+        with open(file_location,'w') as f:
+            f.write(str(cars_coming_home))
 
 def plot_house_leave_return_times_kde(d):
-    #This function does the same thing as plot_house_leave_return_times(). Just experimenting with gaussian_kde() to be able to tweak parameters when doing kde.
+    """ function does the same thing as plot_house_leave_return_times(). Just experimenting with gaussian_kde() to be able to tweak parameters when doing kde."""
     cars_leaving_home = []
     cars_coming_home = []
 

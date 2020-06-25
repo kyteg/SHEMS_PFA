@@ -1,12 +1,15 @@
 """
-converts the leave and return time probabilities into a ev at home probability profile
-by conducting many experiments and seeing when the ev is at home.
+Converts the leave and return time probabilities produced by analisis.py into an
+EV at home probability profile by conducting a Monte Carlo simulation. The file
+then writes the result for each LIFCYC into the ev_profiles directory. (For
+information on LIFCYC, consult the documentation for the NHTS dataset
+- https://nhts.ornl.gov).
 """
 
 import os
 import random
 
-loops = 10000000
+loops = 10000000  #number of simulations
 
 for i in range(1, 11):
 

@@ -1,3 +1,5 @@
+"""Plots the ev profiles"""
+
 import matplotlib.pyplot as plt
 
 def plot_ev_profiles(filepath):

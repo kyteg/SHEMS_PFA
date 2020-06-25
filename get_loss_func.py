@@ -27,14 +27,14 @@ def get_target(s_real, discount, max_reward = [999999, 0], depth = 0):
     result[max_reward[1]] = 1
     return result, max_reward[0]
 
-if __name__ == "__main__":
-    with open("ev_profiles/LIF_CYC1.txt") as f:
-        evprofile = f.readline()
-    evprofile = evprofile.split('[')[1].split(']')[0].split(', ')
-    for i in range(len(evprofile)):
-        evprofile[i] = float(evprofile[i])
-
-    p = policy.Policy()
-    s = state.State(p, evprofile)
-
-    get_target(s, 0.9)
+# if __name__ == "__main__":
+#     with open("ev_profiles/LIF_CYC1.txt") as f:
+#         evprofile = f.readline()
+#     evprofile = evprofile.split('[')[1].split(']')[0].split(', ')
+#     for i in range(len(evprofile)):
+#         evprofile[i] = float(evprofile[i])
+#
+#     p = policy.Policy()
+#     s = state.State(p, evprofile)
+#
+#     get_target(s, 0.9)
